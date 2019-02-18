@@ -1,0 +1,62 @@
+import xml.etree.cElementTree as ET
+import datetime
+
+
+class RssParser(object):
+    """This class takes in rss and parsers it to a dictionary with only needed items"""
+
+    def __init__(self,rss):
+        """Makes sure that rss is valid"""
+        try:
+            tree = ET.parse(rss)
+        except Exception as e:
+            print (e.message)
+            raise e
+
+        self.tree = tree
+        self.items = []
+
+    def parse_full_tree(self):
+        """Fully parses the xml file and saves it to self.items"""
+        list_of_items = []
+        root = self.tree.getroot()
+
+        for item in root.findall('item'): # Only gets the item elements because that's all that matters
+            list_of_items.append({"title":item.find('title').text,
+                                  "link":item.find('link'),
+                                  "pubDate":item.find('pubDate')})
+
+        self.items = list_of_items
+        return list_of_items
+
+    def parse_until_point(self, recent_item):
+        # type: (dict) -> dict
+        """Parses through the xml until it matches a title or the publish date is less than or equal"""
+        # todo: check to see if the title changed of an article
+        list_of_items = []
+        root = self.tree.getroot()
+
+        for item in root.findall('item'): # Only gets the item elements because that's all that matters
+            if item.find('title') == recent_item['title']:
+                break
+            if self._convert_time(item.find('pubDate')) < recent_item['pubDate']:
+                # alert this should only happen if something was deleted
+                # todo: create alert system to email me or something...
+                # todo: create validation system so that everything is reset and it is set to this
+                break
+            list_of_items.append({"title":item.find('title').text,
+                                  "link":item.find('link'),
+                                  "pubDate":item.find('pubDate')})
+        self.items = list_of_items
+        return list_of_items
+
+    def get_item_values(self):
+        return self.items
+
+    def get_xml(self):
+        return self.tree
+
+    @staticmethod
+    def _convert_time(pubDate):
+        # type: (str) -> datetime
+        return datetime.datetime.strptime(pubDate,"%a, %d %b %Y %H:%M:%S %Z")
