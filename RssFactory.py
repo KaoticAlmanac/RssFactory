@@ -1,5 +1,5 @@
 import requests
-from typing import Union
+#from typing import Union
 
 from FileHandler import FileHandler
 from RssParser import RssParser
@@ -16,7 +16,8 @@ def get_rss_list():
     return "https://searchdatacenter.techtarget.com/rss/IT-infrastructure-news.xml\n" \
            "https://searchdatacenter.techtarget.com/es/editorspicks\n" \
            "https://www.lemagit.fr/rss/ContentSyndication.xml\n" \
-           "https://www.searchnetworking.de/rss/Alle-Artikel-und-News-von-SearchNetworkingDE.xml"
+           "https://www.searchnetworking.de/rss/Alle-Artikel-und-News-von-SearchNetworkingDE.xml\n" \
+           "https://searchwindevelopment.techtarget.com/rss/NET-Architecture-Essentials-Channel.xml"
 
 
 def get_last_article(rss_feed):

@@ -1,4 +1,5 @@
 import datetime
+import os
 
 from PyInstaller.compat import FileNotFoundError
 
@@ -9,13 +10,16 @@ class FileHandler:
        But I learned I could"""
     def __init__(self, filename):
         self.filename = filename
-        self.directory = "saved_rss/"
+        self.directory = os.path.dirname(__file__)+"/saved_rss/"
         try:
-            f = open(self.directory + filename, 'a+')
-            f.close()
+            with open(self.directory + filename, 'a+') as f:
+                f.close()
         except FileNotFoundError:
             print("FileNotFoundError in FileHandler.py")
             print("This should never occur because this creates the file if it doesn't exist")
+        except IOError:
+            print("For some reason python isn't creating the file and throwing this error")
+            print(self.directory+filename)
         except Exception as e:
             print("Error making file in FileHandler.py")
             print(e.message)
@@ -24,7 +28,8 @@ class FileHandler:
     @staticmethod
     def _convert_file_line_to_dict(rss_line):
         # type: (str) -> dict
-        """Format: link,title,date\n"""
+        """Format: link,title,date\n
+            todo: if I ever fix format needs to add rss_link"""
         line = [x.strip for x in rss_line.split(',')]  # This removes all white space too
         # Converts the file format to string format to a dict for return
         # pubDate is a string here, it is normally a date, but it converts to a date in RssParser
@@ -33,18 +38,21 @@ class FileHandler:
     def get_last_article_from_file(self):
         # type: () -> dict
         try:
-            f = open(self.directory + self.filename, 'r')
-            last_line = f.readline()
+            with open(self.directory + self.filename, 'r') as f:
+                last_line = f.readline()
 
-            if not last_line:  # This checks if the file is empty then returns the default empty set
-                return {'title': '', 'pubDate': datetime.datetime.min, 'link': self.filename}
-            f.close()
-            return self._convert_file_line_to_dict(last_line)
+                if not last_line:  # This checks if the file is empty then returns the default empty set
+                    return {'title': '', 'pubDate': datetime.datetime.min, 'link': self.filename}
+                f.close()
+                return self._convert_file_line_to_dict(last_line)
         except FileNotFoundError:
             print("File Not Found: This should never happen")
             return {'title': '', 'pubDate': datetime.datetime.min, 'link': self.filename}
+        except IOError:
+            print("For some reason python isn't creating the file and throwing this error")
+            return {'title': '', 'pubDate': datetime.datetime.min, 'link': self.filename}
         except Exception as e:
-            print("Error trying to open file")
+            print("Error trying to open file --> get_last_article")
             print ("Error is not FileNotFoundException")
             print(e.message)
             raise e
@@ -67,14 +75,14 @@ class FileHandler:
         # Removes the trailing white space and new line characters
         new_lines = lines.split()
         try:
-            f = open(filename,'r')  # to read in file
-            originial_text= f.read()
-            f.close()
+            with open(filename,'r') as f:  # to read in file
+                originial_text= f.read()
+                f.close()
 
-            f = open(filename,'w')  # overwrites file as a new file
-            f.write(new_lines+"\n")  # Writes the new lines and adds a new line since I removed the trailing one above
-            f.write(originial_text)
-            f.close()
+            with open(filename,'w') as f:  # overwrites file as a new file
+                f.write(new_lines+"\n")  # Writes the new lines and adds a new line since I removed the trailing one above
+                f.write(originial_text)
+                f.close()
         except FileNotFoundError as e:
             print("File Not Found in line_prepender")
             print(e.message)

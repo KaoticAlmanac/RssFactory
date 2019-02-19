@@ -1,4 +1,4 @@
-from typing import Union
+#from typing import Union
 import xml.etree.ElementTree as ET
 import datetime
 
@@ -20,6 +20,7 @@ class RssParser(object):
 
         self.tree = tree
         self.items = []
+        self.rss_link = rss
 
     def parse_full_tree(self):
         """Fully parses the xml file and saves it to self.items"""
@@ -27,9 +28,10 @@ class RssParser(object):
         root = self.tree.getroot()
 
         for item in root.findall('item'):  # Only gets the item elements because that's all that matters
+            date_name = "pubDate"
             list_of_items.append({"title": item.find('title').text,
                                   "link": item.find('link'),
-                                  "pubDate": item.find('pubDate')})
+                                  "pubDate": item.find(date_name)})
 
         self.items = list_of_items
         return list_of_items
@@ -42,18 +44,23 @@ class RssParser(object):
         root = self.tree
 
         for item in root.iter('item'):  # Only gets the item elements because that's all that matters
+            date_name = "pubDate"
+            if item.find("pubDate") is None:
+                if item.find('dc:date'):
+                    date_name="dc:date"
             if item.find('title').text == recent_item['title']:
                 break
-            if isinstance(recent_item['pubDate'],basestring):
-                recent_item['pubDate'] = self.convert_time(recent_item['pubDate'])
-            if self.convert_time(item.find('pubDate').text) < recent_item['pubDate']:
+            if isinstance(recent_item[date_name],basestring):
+                recent_item[date_name] = self.convert_time(recent_item['pubDate'])
+            if self.convert_time(item.find(date_name).text, date_name) < recent_item['pubDate']:
                 # alert this should only happen if something was deleted
                 # todo: create alert system to email me or something...
                 # todo: create validation system so that everything is reset and it is set to this
                 break
             list_of_items.append({"title": item.find('title').text,
                                   "link": item.find('link').text,
-                                  "pubDate": item.find('pubDate').text})
+                                  "pubDate": item.find(date_name).text,
+                                  "rss_link":self.rss_link})
         self.items = list_of_items
         return list_of_items
 
@@ -64,6 +71,6 @@ class RssParser(object):
         return self.tree
 
     @staticmethod
-    def convert_time(pubDate):
-        # type: (str) -> datetime
+    def convert_time(pubDate,pubDateName="pubDate"):
+        # type: (str,str) -> datetime
         return datetime.datetime.strptime(pubDate, "%a, %d %b %Y %H:%M:%S %Z")
