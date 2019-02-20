@@ -1,7 +1,6 @@
 https://whatis.techtarget.com/fr/rss/Toutes-les-definitions-WhatiscomFR.xml,French
 https://searchitoperations.techtarget.com/rss/searchITOperations-RSS-Feed.xml,English
 https://www.computerweekly.com/rss/RSS-Feed.xml,English
-https://www.searchstorage.de/rss/Alle-Artikel-und-News-von-SearchIT_DE.xml,German
 https://searchdisasterrecovery.techtarget.com/rss/Disaster-recovery-news.xml,English
 https://rss.itmedia.co.jp/rss/1.0/tt_develop.xml,Japanese
 https://www.computerweekly.com/rss/IT-services-and-outsourcing.xml,English
@@ -166,7 +165,7 @@ https://searchsecurity.techtarget.com/rss/Security-New-White-Papers.xml,English
 https://searchdatabase.techtarget.com.cn/feed/,Chinese
 https://searchsecurity.techtarget.com/rss/Threat-Monitor.xml,English
 https://searchsoftwarequality.techtarget.com/rss/Test-and-Release-podcast-feed.xml,English
-ajaxian.com/rss,English
+http://ajaxian.com/rss,English
 https://www.searchsecurity.de/rss/ContentSyndication.xml,German
 https://searchnetworking.techtarget.com/rss/Wireless-networks-news-advice-and-technical-information.xml,English
 https://www.computerweekly.com/rss/IT-security.xml,English
@@ -182,7 +181,6 @@ https://rss.itmedia.co.jp/rss/1.0/tt_business.xml,Japanese
 https://rss.itmedia.co.jp/rss/1.0/tt_smb.xml,Japanese
 https://www.searchnetworking.de/rss/ContentSyndication.xml,German
 https://searchsecurity.techtarget.com/rss/Security-Wire-Weekly.xml,English
-https://techtarget.itmedia.co.jp/tt/operation/,Japanese
 https://www.computerweekly.com/microscope/editorspicks,English
 http://www.digitalcamerareview.com/rss,English
 https://searchwindevelopment.techtarget.com/rss/Office-Development-Channel.xml,English

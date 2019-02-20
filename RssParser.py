@@ -20,7 +20,6 @@ class RssParser(object):
 
         self.tree = tree
         self.items = []
-        self.rss_link = rss
 
     def parse_full_tree(self):
         """Fully parses the xml file and saves it to self.items"""
@@ -36,7 +35,7 @@ class RssParser(object):
         self.items = list_of_items
         return list_of_items
 
-    def parse_until_point(self, recent_item):
+    def parse_until_point(self, recent_item,rss_link):
         # type: (dict) -> list[dict[str, str]]
         """Parses through the xml until it matches a title or the publish date is less than or equal"""
         # todo: check to see if the title changed of an article
@@ -57,10 +56,12 @@ class RssParser(object):
                 # todo: create alert system to email me or something...
                 # todo: create validation system so that everything is reset and it is set to this
                 break
-            list_of_items.append({"title": item.find('title').text,
+            item_formated = {"title": item.find('title').text,
                                   "link": item.find('link').text,
                                   "pubDate": item.find(date_name).text,
-                                  "rss_link":self.rss_link})
+                                  "rss_link":rss_link}
+            print (item_formated)
+            list_of_items.append(item_formated)
         self.items = list_of_items
         return list_of_items
 
@@ -73,4 +74,7 @@ class RssParser(object):
     @staticmethod
     def convert_time(pubDate,pubDateName="pubDate"):
         # type: (str,str) -> datetime
-        return datetime.datetime.strptime(pubDate, "%a, %d %b %Y %H:%M:%S %Z")
+        try:
+            return datetime.datetime.strptime(pubDate, "%a, %d %b %Y %H:%M:%S %Z")
+        except ValueError as e:
+            return datetime.datetime.strptime(pubDate,"%a, %d %b %Y %H:%M:%S +0000")

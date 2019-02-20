@@ -1,64 +1,70 @@
+import time
+import xml.etree.ElementTree
 import requests
-#from typing import Union
+from MongoHandler import MongoHandler
 
 from FileHandler import FileHandler
 from RssParser import RssParser
 
-# This exists in case I can't use the database on the server, if false it saves the rss to a file
-# If true it saves the rss to a database
-DATABASE = False
+"""Broad changes, in mongohandler I can remove sending the language or I can remove getting the language at the end
+   I should remove getting language at the end and add a piece of RssParser to get the language and include it"""
 
 
 def get_rss_list():
     """This will call mongo to grab the RSS list that will likely be populated by hand.
        In the future I plan to have an alert if a new rss becomes available.
        Although for now I will just have a couple for testing"""
-    return "https://searchdatacenter.techtarget.com/rss/IT-infrastructure-news.xml\n" \
-           "https://searchdatacenter.techtarget.com/es/editorspicks\n" \
-           "https://www.lemagit.fr/rss/ContentSyndication.xml\n" \
-           "https://www.searchnetworking.de/rss/Alle-Artikel-und-News-von-SearchNetworkingDE.xml\n" \
-           "https://searchwindevelopment.techtarget.com/rss/NET-Architecture-Essentials-Channel.xml"
+    return MongoHandler.get_rss_list_from_db()
 
 
-def get_last_article(rss_feed):
-    # type: (str) -> Union[dict,FileHandler]
+def get_last_article_handler(rss_feed):
+    # type: (str) -> dict
     # if None return {'title':'','pubDate':datetime.datetime.min,'link':rss_feed}
-    # until I get access to server, save it to files
-    # todo create FileHandler.py and MongoHandler.py to handle all of this
-    if not DATABASE:  # For use before setting up database or if server I can access won't have a db for me to use
-        return FileHandler(rss_feed)
-    return {}
+
+    return MongoHandler.get_last_article_from_rss(rss_feed)
 
 
 def get_new_xml(rss_list):
-    # type: (str) -> list[list[dict[str, str]]]
+    # type: (dict) -> list[list[dict[str, str]]]
     """Gets the new articles from the xml links
        :param rss_list link to rss page
        :return list of new articles"""
     parsed_rss_list = []
-    for rss in rss_list.splitlines():  # Splitlines is because each link will be delineated by it
+    for rss in rss_list:  # Splitlines is because each link will be delineated by it
         print(rss)
         # todo: error handle response and maybe validate its code 200?
-        response = requests.get(rss)  # Gets the rss
+        try:
+            try:
+                response = requests.get(rss['link'])  # Gets the rss
+            except requests.exceptions.SSLError:
+                response = requests.get(rss['link'], verify=False)
+            finally:
+                # Creates the parser that will parse the xml. Makes sure that the xml can be parsed, throws error otherwise
+                parser = RssParser(response.content)
+                last_article = get_last_article_handler(rss['link'])  # Gets the last article saved on the server
+                # Parses the xml until I get a past article or I go past the previous time limit for an article
+                # The previous time is in case the latest article is deleted
 
-        # Creates the parser that will parse the xml. Makes sure that the xml can be parsed, throws error otherwise
-        parser = RssParser(response.content)
-        handler = get_last_article(rss)  # Gets the last article saved on the server
-        # Parses the xml until I get a past article or I go past the previous time limit for an article
-        # The previous time is in case the latest article is deleted
-        last_article = handler.get_last_article_from_file()
+                # todo: check to see if there is any data, if not no need to
+                # todo: Once a day or so validate everything
+                parsed_doc = parser.parse_until_point(last_article,rss['link'])
+                if parsed_doc:
+                    parsed_rss_list.append(parsed_doc)
+                #time.sleep(1)
+        except xml.etree.ElementTree.ParseError:
+            print("Error parsing: "+rss['link'])
+            with open('remove_links.txt',"a+") as f:
+                f.write(rss['link']+"\n")
+            print("Added link to dead link list")
 
-        # todo: check to see if there is any data, if not no need to
-        # todo: Once a day or so validate everything
-        parsed_rss_list.append(parser.parse_until_point(last_article))
     return parsed_rss_list
 
 
 def insert_new_xml(parsed_rss_list):
     # type: (list[RssParser]) -> None
     """Inserts the parsed rss into the database"""
-    print(parsed_rss_list)
-
+    #print(parsed_rss_list)
+    MongoHandler.insert_new_articles(parsed_rss_list)
     return
 
 
