@@ -6,7 +6,6 @@ from MongoHandler import MongoHandler
 from FileHandler import FileHandler
 from RssParser import RssParser
 
-
 """Broad changes, in mongohandler I can remove sending the language or I can remove getting the language at the end
    I should remove getting language at the end and add a piece of RssParser to get the language and include it"""
 
@@ -30,14 +29,10 @@ def handle_xml(response, rss):
     parser = RssParser(response.content)
     last_article = get_last_article_handler(rss['link'])  # Gets the last article saved on the server
     # Parses the xml until I get a past article or I go past the previous time limit for an article
-    # The previous time is in case the latest article is deleted
-
-    # todo: check to see if there is any data, if not no need to
-    # todo: Once a day or so validate everything
     parsed_doc = parser.parse_until_point(last_article, rss['link'])
     if parsed_doc:
         return parsed_doc
-    # time.sleep(1)
+    time.sleep(1)
 
 
 def get_new_xml(rss_list):
@@ -63,7 +58,7 @@ def get_new_xml(rss_list):
                 print("Error getting response")
                 # If I failed to access site with verification, I skip verification
                 # I try again skipping verification and try 5 times if it fails
-                for x in range(1,5):
+                for x in range(1, 5):
                     try:
                         response = requests.get(rss['link'], verify=False)
                         parsed_rss_list.append(handle_xml(response, rss))

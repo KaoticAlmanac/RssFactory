@@ -60,7 +60,6 @@ class RssParser(object):
                 recent_item[date_name] = self.convert_time(recent_item['pubDate'])
             if self.convert_time(item.find(date_name).text, date_name) < recent_item['pubDate']:
                 # alert this should only happen if something was deleted
-                # todo: create alert system to email me or something...
                 # todo: create validation system so that everything is reset and it is set to this
                 break
             item_formated = {"title": item.find('title').text,
