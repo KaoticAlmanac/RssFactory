@@ -1,3 +1,4 @@
+import sys
 import time
 import xml.etree.ElementTree
 import requests
@@ -8,6 +9,7 @@ from RssParser import RssParser
 
 """Broad changes, in mongohandler I can remove sending the language or I can remove getting the language at the end
    I should remove getting language at the end and add a piece of RssParser to get the language and include it"""
+VALIDATION=False
 
 
 def get_rss_list():
@@ -18,9 +20,9 @@ def get_rss_list():
 
 
 def get_last_article_handler(rss_feed):
-    # type: (str) -> dict
-    # if None return {'title':'','pubDate':datetime.datetime.min,'link':rss_feed}
-
+    # type: (str,bool) -> dict
+    if VALIDATION:
+        return MongoHandler.get_empty_article(rss_feed)
     return MongoHandler.get_last_article_from_rss(rss_feed)
 
 
@@ -36,14 +38,17 @@ def handle_xml(response, rss):
 
 
 def get_new_xml(rss_list):
-    # type: (dict) -> list[list[dict[str, str]]]
+    # type: (list[dict[str,str]]) -> list[list[dict[str, str]]]
     """Gets the new articles from the xml links
        :param rss_list link to rss page
+       :param validation=False This is just a flag to throw if we are grabbing all the xml
        :return list of new articles"""
     parsed_rss_list = []
     for rss in rss_list:  # Splitlines is because each link will be delineated by it
         print(rss)
         # todo: error handle response and maybe validate its code 200?
+        # I tried to write some code to error handle this a little, but both servers I could run this on
+        # Had major issues with request, so I am touching that as little as possible.
         try:
             try:
                 """This attempts the requests, parses the xml and then adds it to a list.
@@ -75,10 +80,9 @@ def get_new_xml(rss_list):
 
 
 def insert_new_xml(parsed_rss_list):
-    # type: (list[RssParser]) -> None
+    # type: (list[list[dict[str, str]]]) -> None
     """Inserts the parsed rss into the database"""
-    # print(parsed_rss_list)
-    MongoHandler.insert_new_articles(parsed_rss_list)
+    MongoHandler.insert_new_articles(parsed_rss_list, VALIDATION)
     return
 
 
@@ -90,4 +94,13 @@ def factory_start():
 
 if __name__ == '__main__':
     # todo: for arg in sys.argv[1]: --gives command to either run regular or validate entire xml
+    if sys.argv[1]:
+        # This means that we want to validate all the rss feeds
+        """This runs the main file, except it gets all the rss articles and right before inserting the articles
+           It clears all the articles out. This creates a very brief window in which the user can get false data, but its
+           In the millisecond range. If this was to run on a major corporate site, I would probably either set a signal 
+           To the Web Server to wait on all requests from the deletion to the completion of the code or I would write it
+           To a new database, then using a Mongo command remove and replace the database, which should theoretically happen
+           almost instantly."""
+        VALIDATION = True
     factory_start()

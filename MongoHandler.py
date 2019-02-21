@@ -22,6 +22,10 @@ class MongoHandler:
         return rss
 
     @staticmethod
+    def get_empty_article(rss):
+        return {'title': '', 'pubDate': datetime.datetime.min, 'link': "", "rss_link": rss}
+
+    @staticmethod
     def get_last_article_from_rss(rss):
         # type: (str) -> dict
         """Takes in the link and queries the server for the last article"""
@@ -31,26 +35,15 @@ class MongoHandler:
         try:
             article = client['TT']['articles'].find({'rss_link':rss}).sort([('pubDate',-1),]).limit(1)[0]
             if not article:
-                return {'title': '', 'pubDate': datetime.datetime.min, 'link': "", "rss_link": rss}
+                return MongoHandler.get_empty_article(rss)
             return article
         except Exception as e:
             print("Error getting first article, returning null set")
-            return {'title': '', 'pubDate': datetime.datetime.min, 'link': "", "rss_link": rss}
+            return MongoHandler.get_empty_article(rss)
         # article={}
 
     @staticmethod
-    def get_articles_from_rss(rss):
-        # type: (str) -> list
-        client = MongoClient()
-        articles = client['TT']['articles'].find({'rss_link': rss}).sort([('pubDate', -1), ])
-
-        list_of_articles = []
-        for page in articles:
-            list_of_articles.append(page)
-        return list_of_articles
-
-    @staticmethod
-    def insert_new_articles(list_of_articles):
+    def insert_new_articles(list_of_articles, validation=False):
         # type: (list[list[dict[str,str]]]) -> None
         """This firsts gets a language list, should be stored in the db but since its only needed for this
            I will just write a file."""
@@ -71,6 +64,8 @@ class MongoHandler:
                                         'language': links_to_languages[art['rss_link']]})  # Gets language of rss link
         print(inserts)
         client = MongoClient()
+        if validation:
+            client['TT']['articles'].remove({})
         client['TT']['articles'].insert_many(inserts)
         return
 
