@@ -32,8 +32,8 @@ class MongoHandler:
         # Grabs all the links that match and orders it the newest first
         # If I was worried that there would be too many articles I would set up a fast ordering
         try:
-            article = client['TT']['articles'].find({'rss_link':rss}).sort([('pubDate',-1),]).limit(1)[0]
-            #article = {}
+            #article = client['TT']['articles'].find({'rss_link':rss}).sort([('pubDate',-1),]).limit(1)[0]
+            article = {}
             if not article:
                 return {'title': '', 'pubDate': datetime.datetime.min, 'link': "", "rss_link": rss}
             return article
