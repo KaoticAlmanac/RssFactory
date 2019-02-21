@@ -28,20 +28,6 @@ class RssParser(object):
         self.tree = tree
         self.items = []
 
-    def parse_full_tree(self):
-        """Fully parses the xml file and saves it to self.items"""
-        list_of_items = []
-        root = self.tree.getroot()
-
-        for item in root.findall('item'):  # Only gets the item elements because that's all that matters
-            date_name = "pubDate"
-            list_of_items.append({"title": item.find('title').text,
-                                  "link": item.find('link'),
-                                  "pubDate": item.find(date_name)})
-
-        self.items = list_of_items
-        return list_of_items
-
     def parse_until_point(self, recent_item, rss_link):
         # type: (dict,str) -> list[dict[str, str]]
         """Parses through the xml until it matches a title or the publish date is less than or equal"""

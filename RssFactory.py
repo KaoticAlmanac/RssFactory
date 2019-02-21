@@ -20,7 +20,7 @@ def get_rss_list():
 
 
 def get_last_article_handler(rss_feed):
-    # type: (str,bool) -> dict
+    # type: (str) -> dict
     if VALIDATION:
         return MongoHandler.get_empty_article(rss_feed)
     return MongoHandler.get_last_article_from_rss(rss_feed)
