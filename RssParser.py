@@ -1,4 +1,5 @@
 #from typing import Union
+import time
 import xml.etree.ElementTree as ET
 import datetime
 
@@ -47,7 +48,8 @@ class RssParser(object):
             if item.find("pubDate") is None:
                 if item.find('dc:date'):
                     date_name="dc:date"
-            if item.find('title').text == recent_item['title']:
+            if item.find('title').text.strip() == recent_item['title'].strip():
+                print("Found last article breaking-----")
                 break
             if isinstance(recent_item[date_name],basestring):
                 recent_item[date_name] = self.convert_time(recent_item['pubDate'])
@@ -58,7 +60,7 @@ class RssParser(object):
                 break
             item_formated = {"title": item.find('title').text,
                                   "link": item.find('link').text,
-                                  "pubDate": item.find(date_name).text,
+                                  "pubDate": RssParser.convert_time(item.find(date_name).text),
                                   "rss_link":rss_link}
             print (item_formated)
             list_of_items.append(item_formated)

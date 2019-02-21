@@ -21,27 +21,32 @@ class MongoHandler:
         with open("languages.txt",'r') as f:
             for line in f.readlines():
                 line = line.strip()
-                rss.append({'link':line.split(",")[0],'language':line.split(',')[1]})
+                rss.append({'link':line.split(",")[0].strip(),'language':line.split(',')[1].strip()})
         return rss
 
     @staticmethod
     def get_last_article_from_rss(rss):
         # type: (str) -> dict
         """Takes in the link and queries the server for the last article"""
-        #....client = MongoClient()
+        client = MongoClient()
         # Grabs all the links that match and orders it the newest first
         # If I was worried that there would be too many articles I would set up a fast ordering
-        #...article = client['TT']['articles'].find({'rss_link':rss}).sort({'pubDate':-1})[0]
-        article={}
-        if not article:
-            return {'title': '', 'pubDate': datetime.datetime.min, 'link': "","rss_link":rss}
-        return article
+        try:
+            article = client['TT']['articles'].find({'rss_link':rss}).sort([('pubDate',-1),]).limit(1)[0]
+            #article = {}
+            if not article:
+                return {'title': '', 'pubDate': datetime.datetime.min, 'link': "", "rss_link": rss}
+            return article
+        except Exception as e:
+            print("Error getting first article, returning null set")
+            return {'title': '', 'pubDate': datetime.datetime.min, 'link': "", "rss_link": rss}
+        #article={}
 
     @staticmethod
     def get_articles_from_rss(rss):
         # type: (str) -> list
         client= MongoClient()
-        articles = client['TT']['articles'].find({'link': rss}).sort({'pubDate': -1})
+        articles = client['TT']['articles'].find({'rss_link': rss}).sort([('pubDate', -1), ])
 
         list_of_articles =[]
         for page in articles:
@@ -53,20 +58,27 @@ class MongoHandler:
         # type: (list[list[dict[str,str]]]) -> None
         """This firsts gets a language list, should be stored in the db but since its only needed for this
            I will just write a file."""
+        print "in insert new articles"
         links_to_languages = MongoHandler.get_language_list()
         links_of_articles = set()  # This exists to make sure no duplicates are entered
         inserts=[]
         for articles in list_of_articles:
-            for art in articles:
-                if art['link'] not in links_of_articles:
-                    links_of_articles.add(art['link'])
-                    inserts.append({'title':art['title'],  # title of article
-                                    'pubDate':art['pubDate'],  # date article was published
-                                    'link':art['link'],  # link to specific article
-                                    'rss_link':art['rss_link'],  # rss link for article, don't think I need?
-                                    'language':links_to_languages[art['rss_list']]})  # Gets language of rss link
+            print(articles)
+            if articles:
+                for art in articles:
+                    if art['link'] not in links_of_articles:
+                        links_of_articles.add(art['link'])
+                        inserts.append({'title':art['title'],  # title of article
+                                        'pubDate':art['pubDate'],  # date article was published
+                                        'link':art['link'],  # link to specific article
+                                        'rss_link':art['rss_link'],  # rss link for article, don't think I need?
+                                        'language':links_to_languages[art['rss_link']]})  # Gets language of rss link
+        print("__________________")
         print(inserts)
-
+        print("__________________")
+        client = MongoClient()
+        client['TT']['articles'].insert_many(inserts)
+        #print(client['TT'].count())
         return
 
     @staticmethod
@@ -76,5 +88,5 @@ class MongoHandler:
         languages={}
         with open("languages.txt","r") as f:
             for line in f.readlines():
-                languages[line.split(",")[0]] = line.split(",")[1]  # link: language
+                languages[line.split(",")[0]] = line.split(",")[1].strip()  # link: language
         return languages
