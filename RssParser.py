@@ -39,7 +39,8 @@ class RssParser(object):
 
         for item in root.iter('item'):  # Only gets the item elements because that's all that matters
             date_name = "pubDate"  # Dont need this anymore, this was to help identify jap pages and its different style
-            if item.find('title').text.strip() == recent_item['title'].strip():
+            if item.find('title').text.strip() in recent_item['title'].strip() \
+                    or item.find('link').text.strip() in recent_item['link']:
                 print("Found last article breaking-----")
                 break
             if isinstance(recent_item["pubDate"], basestring):

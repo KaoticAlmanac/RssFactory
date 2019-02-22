@@ -94,7 +94,7 @@ def factory_start():
 
 if __name__ == '__main__':
     # todo: for arg in sys.argv[1]: --gives command to either run regular or validate entire xml
-    if sys.argv[1]:
+    if len(sys.argv) > 1:
         # This means that we want to validate all the rss feeds
         """This runs the main file, except it gets all the rss articles and right before inserting the articles
            It clears all the articles out. This creates a very brief window in which the user can get false data, but its
